@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/components/canvasstage.tsx","./src/components/panels.tsx","./src/components/topbar.tsx","./src/lib/geom.ts","./src/lib/hungarian.ts","./src/lib/optimizer.ts","./src/lib/path.ts","./src/lib/types.ts","./src/state/useplanner.ts"],"version":"5.9.3"}
