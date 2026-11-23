@@ -6,7 +6,7 @@
 
 Plan formations. Press one button. Get mathematically optimized, collision-aware movement paths for every dancer.
 
-[![Deploy to GitHub Pages](https://github.com/YOUR_USERNAME/dance-formation-planner/actions/workflows/deploy.yml/badge.svg)](https://adrianstempien.github.io/dance-formation-planner/)
+[![Deploy to GitHub Pages](https://github.com/AdrianStempien/dance-formation-planner/actions/workflows/deploy.yml/badge.svg)](https://adrianstempien.github.io/dance-formation-planner/)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
