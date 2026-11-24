@@ -542,22 +542,37 @@ body {
 }
 
 @media (max-width: 900px) {
+  /* let the page scroll naturally instead of inner panel scroll areas */
+  .app {
+    height: auto;
+    min-height: 100dvh;
+  }
   .main {
     flex-direction: column;
+    flex: none;
   }
   .panel {
     width: 100%;
     border: none;
     border-bottom: 1px solid #e5e0d5;
-    max-height: 200px;
+    max-height: none;
+    overflow: visible;
   }
   .panel:last-child {
     border-left: none;
+    border-bottom: none;
+  }
+  .panel-section.grow {
+    flex: none;
+  }
+  .dancer-list {
+    overflow: visible;
   }
   .stage-area {
     order: -1;
+    flex: none;
+    height: 55vh;
     min-height: 320px;
-    flex: 1;
   }
   .topbar {
     gap: 6px;
