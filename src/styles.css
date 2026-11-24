@@ -541,7 +541,9 @@ body {
   }
 }
 
-@media (max-width: 900px) {
+/* Mobile layout: narrow screens OR touch-primary devices (phones/tablets
+   in any orientation), while desktops keep the sidebar layout. */
+@media (max-width: 900px), (pointer: coarse) {
   /* let the page scroll naturally instead of inner panel scroll areas */
   .app {
     height: auto;
