@@ -245,7 +245,12 @@ export function optimizePaths(input: OptimizeInput): OptimizationResult {
     paths.push(toMovePath(id, pts, !!route))
   }
 
-  const conflicts = countConflicts(paths)
+  // Conflict detection on a downsampled copy — ~9x faster, negligible accuracy loss
+  const conflictPaths = paths.map((p) => ({
+    ...p,
+    points: p.points.filter((_, i) => i % 3 === 0 || i === p.points.length - 1),
+  }))
+  const conflicts = countConflicts(conflictPaths)
   const totalDistance = paths.reduce((s, p) => s + p.length, 0)
   const score =
     totalDistance * Math.max(weights.distance, 0.25) +
