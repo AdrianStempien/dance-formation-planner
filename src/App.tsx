@@ -20,6 +20,8 @@ export default function App() {
         : state.altResults[state.routeIdx - 1] ?? state.result
 
   const [view, setView] = useState<ViewState>({ tx: 0, ty: 0, zoom: 42 })
+  const zoomBy = (factor: number) =>
+    setView((v) => ({ ...v, zoom: Math.min(220, Math.max(8, v.zoom * factor)) }))
   const [mode, setMode] = useState<CanvasMode>('select')
   const [playing, setPlaying] = useState(false)
   const [animT, setAnimT] = useState(0)
@@ -237,6 +239,9 @@ export default function App() {
         routeCount={state.altResults.length + 1}
         routes={state.result ? [state.result, ...state.altResults] : []}
         onRouteIdx={actions.setRouteIdx}
+        onZoomIn={() => zoomBy(1.3)}
+        onZoomOut={() => zoomBy(1 / 1.3)}
+        onZoomReset={() => setView({ tx: 0, ty: 0, zoom: 42 })}
       />
       <div className="main">
         <LeftPanel

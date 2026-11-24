@@ -250,7 +250,7 @@ export function optimizePaths(input: OptimizeInput): OptimizationResult {
   const score =
     totalDistance * weights.distance +
     conflicts.intersections * 60 * weights.intersection +
-    conflicts.collisions * 30 * weights.collision
+    conflicts.collisions * 8 * weights.collision
 
   return {
     paths,

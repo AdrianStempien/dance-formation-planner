@@ -123,7 +123,7 @@ export interface ConflictInfo {
   pairs: { a: string; b: string; kind: 'cross' | 'near' }[]
 }
 
-const COLLISION_RADIUS = 26 // world units; dancers closer than this at same progress = conflict
+const COLLISION_RADIUS = 2.0 // meters; dancers closer than this at same progress = conflict
 
 /**
  * Count path intersections (proper crossings) and collisions
@@ -231,16 +231,17 @@ export function singlePathCost(
   let inter = 0
   let near = 0
   const n = pts.length
+  // bbox of candidate path, computed once
+  let pminx = Infinity, pmaxx = -Infinity, pminy = Infinity, pmaxy = -Infinity
+  for (const p of pts) {
+    if (p.x < pminx) pminx = p.x
+    if (p.x > pmaxx) pmaxx = p.x
+    if (p.y < pminy) pminy = p.y
+    if (p.y > pmaxy) pmaxy = p.y
+  }
   for (const O of others) {
     if (!O || O.length === 0) continue
     // bbox reject
-    let pminx = Infinity, pmaxx = -Infinity, pminy = Infinity, pmaxy = -Infinity
-    for (const p of pts) {
-      if (p.x < pminx) pminx = p.x
-      if (p.x > pmaxx) pmaxx = p.x
-      if (p.y < pminy) pminy = p.y
-      if (p.y > pmaxy) pmaxy = p.y
-    }
     let ominx = Infinity, omaxx = -Infinity, ominy = Infinity, omaxy = -Infinity
     for (const p of O) {
       if (p.x < ominx) ominx = p.x
@@ -269,18 +270,18 @@ export function singlePathCost(
         }
       }
     }
-    // near collision along progress
+    // near collision along progress — count close samples (capped) so the
+    // optimizer gets a gradient, not just a binary flag
     const step = Math.max(1, Math.floor(Math.min(n, O.length) / 40))
-    for (let k = 0; k < n; k += step) {
+    for (let k = 0; k < n && near < 12; k += step) {
       const oi = Math.floor((k / n) * (O.length - 1))
       if (dist(pts[k], O[oi]) < COLLISION_RADIUS) {
         near++
-        break
       }
     }
   }
   cost += inter * 60 * w.intersection
-  cost += near * 30 * w.collision
+  cost += near * 8 * w.collision
   return cost
 }
 

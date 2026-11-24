@@ -530,6 +530,17 @@ body {
   white-space: nowrap;
 }
 
+/* ---------- mobile / touch ---------- */
+.touch-only {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .touch-only {
+    display: flex;
+  }
+}
+
 @media (max-width: 900px) {
   .main {
     flex-direction: column;
@@ -538,9 +549,41 @@ body {
     width: 100%;
     border: none;
     border-bottom: 1px solid #e5e0d5;
-    max-height: 220px;
+    max-height: 200px;
+  }
+  .panel:last-child {
+    border-left: none;
   }
   .stage-area {
-    min-height: 300px;
+    order: -1;
+    min-height: 320px;
+    flex: 1;
+  }
+  .topbar {
+    gap: 6px;
+    padding: 6px 10px;
+  }
+  .scrub {
+    width: 90px;
+  }
+  .canvas-hint {
+    font-size: 10.5px;
+    white-space: normal;
+    max-width: 92%;
+    text-align: center;
+    line-height: 1.4;
+  }
+  .dancer-name,
+  .formation-name {
+    font-size: 16px; /* prevent iOS auto-zoom on focus */
+  }
+}
+
+@media (max-width: 560px) {
+  .brand-name {
+    display: none;
+  }
+  .route-label {
+    display: none;
   }
 }

@@ -26,6 +26,9 @@ interface Props {
   routeCount: number
   routes: OptimizationResult[]
   onRouteIdx: (i: number) => void
+  onZoomIn: () => void
+  onZoomOut: () => void
+  onZoomReset: () => void
 }
 
 export default function TopBar(p: Props) {
@@ -54,6 +57,12 @@ export default function TopBar(p: Props) {
       <button className="btn-primary" onClick={p.onCalculate} disabled={p.calculating}>
         {p.calculating ? 'Calculating…' : 'Calculate paths'}
       </button>
+
+      <div className="toolbar-group touch-only">
+        <button className="tbtn" onClick={p.onZoomOut} title="Zoom out">−</button>
+        <button className="tbtn" onClick={p.onZoomReset} title="Reset zoom">⌂</button>
+        <button className="tbtn" onClick={p.onZoomIn} title="Zoom in">+</button>
+      </div>
 
       <div className="toolbar-group transport">
         <button className="tbtn" onClick={p.onPlayPause} disabled={!p.hasResult} title={p.playing ? 'Pause' : 'Play transition'}>

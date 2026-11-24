@@ -35,6 +35,8 @@ export default function CanvasStage(props: Props) {
   const [size, setSize] = useState({ w: 800, h: 600 })
   const dragRef = useRef<{ kind: 'pan' | 'dancer'; id?: string; startX: number; startY: number; moved: boolean; orig?: Vec2 } | null>(null)
   const [panning, setPanning] = useState(false)
+  const pointersRef = useRef(new Map<number, { x: number; y: number }>())
+  const pinchRef = useRef<{ dist: number } | null>(null)
 
   useEffect(() => {
     const el = wrapRef.current
@@ -98,24 +100,68 @@ export default function CanvasStage(props: Props) {
     y: Math.max(-FLOOR_H / 2 + 0.3, Math.min(FLOOR_H / 2 - 0.3, p.y)),
   })
 
+  /** Track active pointers; when a second finger lands, cancel any drag and start pinch-zoom. */
+  const trackPointer = (e: React.PointerEvent) => {
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    if (pointersRef.current.size >= 2) {
+      if (dragRef.current?.kind === 'dancer') props.onGestureEnd()
+      dragRef.current = null
+      setPanning(false)
+      const pts = [...pointersRef.current.values()]
+      pinchRef.current = { dist: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) }
+    }
+  }
+
+  const untrackPointer = (pointerId: number) => {
+    pointersRef.current.delete(pointerId)
+    if (pointersRef.current.size < 2) pinchRef.current = null
+  }
+
   const onSvgPointerDown = (e: React.PointerEvent) => {
     if (e.button === 2) return
     ;(e.target as Element).setPointerCapture?.(e.pointerId)
+    trackPointer(e)
+    if (pinchRef.current) return
     dragRef.current = { kind: 'pan', startX: e.clientX, startY: e.clientY, moved: false }
     setPanning(true)
   }
 
   const onDancerPointerDown = (e: React.PointerEvent, id: string) => {
     e.stopPropagation()
+    ;(e.target as Element).setPointerCapture?.(e.pointerId)
+    trackPointer(e)
     props.onSelect(id)
-    if (mode !== 'select') return
+    if (pinchRef.current || mode !== 'select') return
     const pos = state[state.editing].positions[id]
     dragRef.current = { kind: 'dancer', id, startX: e.clientX, startY: e.clientY, moved: false, orig: pos ? { ...pos } : undefined }
     if (pos) props.onGestureBegin()
-    ;(e.target as Element).setPointerCapture?.(e.pointerId)
   }
 
   const onPointerMove = (e: React.PointerEvent) => {
+    const tracked = pointersRef.current.get(e.pointerId)
+    if (tracked) {
+      tracked.x = e.clientX
+      tracked.y = e.clientY
+    }
+    // pinch zoom with two pointers
+    if (pointersRef.current.size >= 2 && pinchRef.current) {
+      const pts = [...pointersRef.current.values()]
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y)
+      const mx = (pts[0].x + pts[1].x) / 2
+      const my = (pts[0].y + pts[1].y) / 2
+      const factor = dist / (pinchRef.current.dist || 1)
+      pinchRef.current.dist = dist
+      const rect = svgRef.current!.getBoundingClientRect()
+      const sx = mx - rect.left
+      const sy = my - rect.top
+      setView((v) => {
+        const zoom = Math.min(220, Math.max(8, v.zoom * factor))
+        const wx = (sx - size.w / 2) / v.zoom + v.tx
+        const wy = (sy - size.h / 2) / v.zoom + v.ty
+        return { zoom, tx: wx - (sx - size.w / 2) / zoom, ty: wy - (sy - size.h / 2) / zoom }
+      })
+      return
+    }
     const d = dragRef.current
     if (!d) return
     const dx = e.clientX - d.startX
@@ -132,6 +178,7 @@ export default function CanvasStage(props: Props) {
   }
 
   const onPointerUp = (e: React.PointerEvent) => {
+    untrackPointer(e.pointerId)
     const d = dragRef.current
     dragRef.current = null
     setPanning(false)
@@ -205,6 +252,7 @@ export default function CanvasStage(props: Props) {
         onPointerDown={onSvgPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
         onContextMenu={(e) => e.preventDefault()}
       >
         {/* floor */}
