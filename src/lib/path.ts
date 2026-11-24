@@ -184,11 +184,18 @@ export function countConflicts(paths: MovePath[]): ConflictInfo {
         intersections++
         pairs.push({ a: coarse[i].id, b: coarse[j].id, kind: 'cross' })
       }
-      // collision: same progress index proximity
+      // collision: same progress index proximity (small window for sync tolerance)
       const n = Math.min(A.length, B.length)
       for (let k = 0; k < n; k += step) {
-        const d = dist(A[Math.floor((k / n) * (A.length - 1))], B[Math.floor((k / n) * (B.length - 1))])
-        if (d < COLLISION_RADIUS) {
+        const ai = Math.floor((k / n) * (A.length - 1))
+        const bi = Math.floor((k / n) * (B.length - 1))
+        let dmin = Infinity
+        for (let w = -2; w <= 2; w++) {
+          const bj = Math.min(B.length - 1, Math.max(0, bi + w))
+          const d = dist(A[ai], B[bj])
+          if (d < dmin) dmin = d
+        }
+        if (dmin < COLLISION_RADIUS) {
           near = true
           break
         }
@@ -215,7 +222,9 @@ export function singlePathCost(
 ): number {
   const m = pathMetrics(pts, start, dest)
   const straight = dist(start, dest)
-  let cost = m.length * w.distance
+  // Floor the distance term: with distance weight at 0 the optimizer would
+  // otherwise buy collision-freedom with absurdly long detours.
+  let cost = m.length * Math.max(w.distance, 0.25)
 
   // smoothness: penalize deviation from straight line & turn angle
   cost += m.deviation * straight * w.smoothness * 0.5
@@ -271,11 +280,18 @@ export function singlePathCost(
       }
     }
     // near collision along progress — count close samples (capped) so the
-    // optimizer gets a gradient, not just a binary flag
+    // optimizer gets a gradient, not just a binary flag. A small window
+    // around the aligned index catches crossings that are slightly out of sync.
     const step = Math.max(1, Math.floor(Math.min(n, O.length) / 40))
     for (let k = 0; k < n && near < 12; k += step) {
       const oi = Math.floor((k / n) * (O.length - 1))
-      if (dist(pts[k], O[oi]) < COLLISION_RADIUS) {
+      let dmin = Infinity
+      for (let w = -2; w <= 2; w++) {
+        const j = Math.min(O.length - 1, Math.max(0, oi + w))
+        const d = dist(pts[k], O[j])
+        if (d < dmin) dmin = d
+      }
+      if (dmin < COLLISION_RADIUS) {
         near++
       }
     }

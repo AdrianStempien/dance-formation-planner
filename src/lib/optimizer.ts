@@ -248,7 +248,7 @@ export function optimizePaths(input: OptimizeInput): OptimizationResult {
   const conflicts = countConflicts(paths)
   const totalDistance = paths.reduce((s, p) => s + p.length, 0)
   const score =
-    totalDistance * weights.distance +
+    totalDistance * Math.max(weights.distance, 0.25) +
     conflicts.intersections * 60 * weights.intersection +
     conflicts.collisions * 8 * weights.collision
 
